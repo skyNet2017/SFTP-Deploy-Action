@@ -1,5 +1,10 @@
-
 # SFTP Deploy Action
+
+# new feature
+
+to solve the upload slow problem, zip the folder before upload ,unzip it after upload succed;
+
+
 
 > Use this action to deploy your files to a server using `SSH Private Key`
 
@@ -160,5 +165,4 @@ If you remove it, you might encounter an `invalid format` error.
 ![](./resource/keepformat.jpg)
 
 ---
-
 
