@@ -33,6 +33,35 @@ else
   echo "===> Done rsync filtering. Continue original script..."
 fi
 
+# 检查本地是否安装了 zip 工具
+echo "===> Checking if zip is installed locally"
+if ! command -v zip >/dev/null 2>&1; then
+  echo "===> zip is not installed, installing..."
+  if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    case $ID in
+      debian|ubuntu)
+        sudo apt-get update && sudo apt-get install -y zip
+        ;;
+      centos|rhel|fedora)
+        sudo yum install -y zip
+        ;;
+      alpine)
+        sudo apk add zip
+        ;;
+      *)
+        echo "===> Unsupported OS: $ID. Please install zip manually."
+        exit 1
+        ;;
+    esac
+  else
+    echo "===> Unable to detect OS. Please install zip manually."
+    exit 1
+  fi
+else
+  echo "===> zip is already installed"
+fi
+
 # 压缩文件夹
 ZIP_FILE="../upload.zip"
 echo "===> Compressing folder to $ZIP_FILE"
@@ -89,6 +118,37 @@ SSHPASS=${10} sshpass -e sftp -oBatchMode=no -b $TEMP_SFTP_FILE -P $3 $8 -o Stri
 
 echo 'Deploy Success'
 
+    # 在远程服务器上检查并安装 unzip
+    echo "===> Checking if unzip is installed on remote server"
+    if sshpass -p ${10} ssh -o StrictHostKeyChecking=no -p $3 $1@$2 "command -v unzip >/dev/null 2>&1"; then
+        echo "===> unzip is already installed"
+    else
+        echo "===> unzip is not installed, installing..."
+        sshpass -p ${10} ssh -o StrictHostKeyChecking=no -p $3 $1@$2 "
+          if [ -f /etc/os-release ]; then
+            . /etc/os-release
+            case \$ID in
+              debian|ubuntu)
+                sudo apt-get update && sudo apt-get install -y unzip
+                ;;
+              centos|rhel|fedora)
+                sudo yum install -y unzip
+                ;;
+              alpine)
+                sudo apk add unzip
+                ;;
+              *)
+                echo '===> Unsupported OS: \$ID. Please install unzip manually.'
+                exit 1
+                ;;
+            esac
+          else
+            echo '===> Unable to detect OS. Please install unzip manually.'
+            exit 1
+          fi
+        "
+    fi
+
     # 在远程服务器上解压缩
     echo "===> Unzipping on remote server"
     sshpass -p ${10} ssh -o StrictHostKeyChecking=no -p $3 $1@$2 "unzip -o $6/upload.zip -d $6 && rm $6/upload.zip"
@@ -121,6 +181,37 @@ printf "%s" "put $ZIP_FILE $6/upload.zip" >$TEMP_SFTP_FILE
 sftp -b $TEMP_SFTP_FILE -P $3 $8 -o StrictHostKeyChecking=no -i $TEMP_SSH_PRIVATE_KEY_FILE $1@$2
 
 echo 'Deploy Success'
+
+# 在远程服务器上检查并安装 unzip
+echo "===> Checking if unzip is installed on remote server"
+if ssh -o StrictHostKeyChecking=no -p $3 -i $TEMP_SSH_PRIVATE_KEY_FILE $1@$2 "command -v unzip >/dev/null 2>&1"; then
+    echo "===> unzip is already installed"
+else
+    echo "===> unzip is not installed, installing..."
+    ssh -o StrictHostKeyChecking=no -p $3 -i $TEMP_SSH_PRIVATE_KEY_FILE $1@$2 "
+      if [ -f /etc/os-release ]; then
+        . /etc/os-release
+        case \$ID in
+          debian|ubuntu)
+            sudo apt-get update && sudo apt-get install -y unzip
+            ;;
+          centos|rhel|fedora)
+            sudo yum install -y unzip
+            ;;
+          alpine)
+            sudo apk add unzip
+            ;;
+          *)
+            echo '===> Unsupported OS: \$ID. Please install unzip manually.'
+            exit 1
+            ;;
+        esac
+      else
+        echo '===> Unable to detect OS. Please install unzip manually.'
+        exit 1
+      fi
+    "
+fi
 
 # 在远程服务器上解压缩
 echo "===> Unzipping on remote server"
