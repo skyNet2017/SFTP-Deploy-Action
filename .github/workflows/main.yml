@@ -1,26 +1,26 @@
-name: Continuous Deploy 
-on: [push] 
+name: Continuous Deploy
+on: [push]
 
 jobs:
   deploy_job:
-    runs-on: ubuntu-latest  
+    runs-on: ubuntu-latest
     name: sftp
     steps:
-      - name: Checkout    
-        uses: actions/checkout@v2 
+      - name: Checkout
+        uses: actions/checkout@v2
 
-      - name: deploy file to server
+      - name: deploy file to server auto zip
         uses:  ./ # Uses an action in the root directory
-        with:  
-          username: '${{ secrets.USER }}'  
+        with:
+          username: '${{ secrets.USER }}'
           server: '${{ secrets.SERVER_IP }}'
           ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
-          local_path: './*' 
+          local_path: './*'
           remote_path: '/tmp/testAction'
           sftpArgs: '-o ConnectTimeout=5'
           rsyncArgs: '--exclude *.yml'
-            
-          
+
+
           # sftp_only: true
           # password: ${{secrets.SSH_PASSWORD}}
           # delete_remote_files: true
